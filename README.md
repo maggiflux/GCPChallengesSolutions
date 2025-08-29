@@ -5,7 +5,7 @@ My approaches to some of the challenges from GCP paths and courses
 
 # Paths
   ## Associate Cloud Engineer Certification Learning Path
-  [Implement Load Balancing on Compute Engine: Challenge Lab](#associate-cloud-engineer-certification-learning-path)
+  [Implement Load Balancing on Compute Engine: Challenge Lab](#implement-load-balancing)
 
     Set Up an App Dev Environment on Google Cloud: Challenge Lab
     Develop your Google Cloud Network: Challenge Lab
@@ -25,6 +25,7 @@ Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
 Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
 Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
 
-## Implement Load Balancing on Compute Engine: Challenge Lab
+## <a href="#implement-load-balancing">Implement Load Balancing on Compute Engine: Challenge Lab</a>
+
 
 
