@@ -5,12 +5,21 @@
 
 <hr style="border:0;height:1px;background:#ddd;" />
 
-## 📌 Quick links
+## 📌 Paths 
+
+## 🎓 Associate Cloud Engineer Certification Learning Path
 - [⚖️ Implement Load Balancing on Compute Engine: Challenge Lab](#load-balancing)
 - [🛠️ Set Up an App Dev Environment on Google Cloud: Challenge Lab](#app-dev-environment)
 - [🌐 Develop your Google Cloud Network: Challenge Lab](#develop-network)
 - [🏗️ Build Infrastructure with Terraform on Google Cloud: Challenge Lab](#terraform-infra)
+
+## 🤖 Beginner: Introduction to Generative AI Learning Path
 - [✨ Prompt Design in Vertex AI: Challenge Lab](#prompt-design)
+
+## 👨‍💻 Professional Cloud Developer Certification Learning Path
+- 🚧 Coming soon - in progress
+
+## 📚 Courses
 - [⚡ Cloud Run Functions: 3 Ways: Challenge Lab](#cloud-run-functions)
 
 <hr style="border:0;height:1px;background:#eee;" />
