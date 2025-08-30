@@ -8,7 +8,7 @@
 ## 📌 Paths
 
 ### 🎓 Associate Cloud Engineer Certification Learning Path
-- [⚖️ Implement Load Balancing on Compute Engine: Challenge Lab](#implement-load-balancing-on-compute-engine-challenge-lab)
+- ##[⚖️ Implement Load Balancing on Compute Engine: Challenge Lab](#implement-load-balancing-on-compute-engine-challenge-lab)
 - [🛠️ Set Up an App Dev Environment on Google Cloud: Challenge Lab](#set-up-an-app-dev-environment-on-google-cloud-challenge-lab)
 - [🌐 Develop your Google Cloud Network: Challenge Lab](#develop-your-google-cloud-network-challenge-lab)
 - [🏗️ Build Infrastructure with Terraform on Google Cloud: Challenge Lab](#build-infrastructure-with-terraform-on-google-cloud-challenge-lab)
@@ -28,7 +28,7 @@
 
 ## 📝 Solutions
 
-### ⚖️ Implement Load Balancing on Compute Engine: Challenge Lab
+# ⚖️ Implement Load Balancing on Compute Engine: Challenge Lab
 (Tu explicación aquí)
 ## 
 ### 🛠️ Set Up an App Dev Environment on Google Cloud: Challenge Lab
