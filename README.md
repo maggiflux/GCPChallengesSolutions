@@ -7,7 +7,7 @@
 
 ## 📌 Paths 
 
-## 🎓 Associate Cloud Engineer Certification Learning Path
+### 🎓 Associate Cloud Engineer Certification Learning Path
 - [⚖️ Implement Load Balancing on Compute Engine: Challenge Lab](#load-balancing)
 - [🛠️ Set Up an App Dev Environment on Google Cloud: Challenge Lab](#app-dev-environment)
 - [🌐 Develop your Google Cloud Network: Challenge Lab](#develop-network)
