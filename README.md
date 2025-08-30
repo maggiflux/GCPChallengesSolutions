@@ -32,18 +32,22 @@
 ### ⚖️ Implement Load Balancing on Compute Engine: Challenge Lab
 RESPUESTA
 <hr style="border:0;height:1px;background:#eee;" />
+
 <a id="develop-network"></a>
 ### 🌐 Develop your Google Cloud Network: Challenge Lab
 RESPUESTA
 <hr style="border:0;height:1px;background:#eee;" />
+
 <a id="terraform-infra"></a>
 ### 🏗️ Build Infrastructure with Terraform on Google Cloud: Challenge Lab
 RESPUESTA
 <hr style="border:0;height:1px;background:#eee;" />
+
 <a id="prompt-design"></a>
 ### ✨ Prompt Design in Vertex AI: Challenge Lab
 RESPUESTA
 <hr style="border:0;height:1px;background:#eee;" />
+
 <a id="cloud-run-functions"></a>
 ### ⚡ Cloud Run Functions: 3 Ways Skill Badge: Challenge Lab: Introductory
 
