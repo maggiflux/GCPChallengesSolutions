@@ -17,7 +17,7 @@
 - [Prompt Design in Vertex AI: Challenge Lab](#prompt-design)
 
 ### 👨‍💻 Professional Cloud Developer Certification Learning Path
-- 🚧 Coming soon - in progress
+- Coming soon - in progress
 
 ## 📚 Courses
 
@@ -30,6 +30,11 @@
 
 <a id="load-balancing"></a>
 ### ⚖️ Implement Load Balancing on Compute Engine: Challenge Lab
+RESPUESTA
+<hr style="border:0;height:1px;background:#eee;" />
+
+<a id="load-balancing"></a>
+### 🚧 Set Up an App Dev Environment on Google Cloud: Challenge Lab
 RESPUESTA
 <hr style="border:0;height:1px;background:#eee;" />
 
@@ -50,6 +55,8 @@ RESPUESTA
 
 <a id="cloud-run-functions"></a>
 ### ⚡ Cloud Run Functions: 3 Ways Skill Badge: Challenge Lab: Introductory
+
+https://www.cloudskillsboost.google/course_templates/696/labs/562153
 
 *All the instructions given are meant to be executed on the Cloud shell.*
 
