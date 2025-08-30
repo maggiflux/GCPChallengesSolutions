@@ -102,7 +102,7 @@ mkdir ~/$FUNCTION_NAME && cd $_
 touch index.js && touch package.json
 ```
 
-//Paste the code provided on the index.js file 
+//Paste the code provided within the index.js file 
 
 ```jsx
 cat > index.js << EOF
@@ -115,7 +115,7 @@ functions.cloudEvent('cs-monitor', (cloudevent) => {
 EOF
 ```
 
-//Paste the code provided on the package.json file 
+//Paste the code provided within the package.json file 
 
 ```jsx
 cat > package.json << EOF
@@ -182,7 +182,7 @@ mkdir ~/$HTTP_FUNCTION && cd $_
 touch index.js && touch package.json
 ```
 
-//Paste the code provided on the index.js file 
+//Paste the code provided within the index.js file 
 
 ```jsx
  cat > index.js << EOF
@@ -194,7 +194,7 @@ touch index.js && touch package.json
 	 EOF
 ```
 
-//Paste the code provided on the package.json file 
+//Paste the code provided within the package.json file 
 
 ```jsx
   cat > package.json << EOF
