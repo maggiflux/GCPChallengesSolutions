@@ -5,10 +5,10 @@ My approaches to some of the challenges from GCP paths and courses
 
 # Paths
   ## Associate Cloud Engineer Certification Learning Path
-  [Implement Load Balancing on Compute Engine: Challenge Lab](#implement-load-balancing-on-compute-engine-challenge-lab)
-  [Set Up an App Dev Environment on Google Cloud: Challenge Lab](#implement-load-balancing-on-compute-engine-challenge-lab)
-  [Develop your Google Cloud Network: Challenge Lab](#implement-load-balancing-on-compute-engine-challenge-lab)
-  [Build Infrastructure with Terraform on Google Cloud: Challenge Lab](#implement-load-balancing-on-compute-engine-challenge-lab)
+  -[Implement Load Balancing on Compute Engine: Challenge Lab](#implement-load-balancing-on-compute-engine-challenge-lab)
+  -[Set Up an App Dev Environment on Google Cloud: Challenge Lab](#implement-load-balancing-on-compute-engine-challenge-lab)
+  -[Develop your Google Cloud Network: Challenge Lab](#implement-load-balancing-on-compute-engine-challenge-lab)
+  -[Build Infrastructure with Terraform on Google Cloud: Challenge Lab](#implement-load-balancing-on-compute-engine-challenge-lab)
     
 ## Beginner: Introduction to Generative AI Learning Path
   [Prompt Design in Vertex AI: Challenge Lab](#implement-load-balancing-on-compute-engine-challenge-lab)
