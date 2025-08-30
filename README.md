@@ -307,8 +307,460 @@ curl http://[EXTERNAL LOAD BALANCER 35.]
 
 <a id="app-dev-environment"></a>
 ### 🛠️ Set Up an App Dev Environment on Google Cloud: Challenge Lab
-explicación
+**Set Up an App Dev Environment on Google Cloud: Challenge Lab**
+
+<aside>
+
+**Challenge scenario**
+
+You are just starting your junior cloud engineer role with Jooli inc. So far you have been helping teams create and manage Google Cloud resources.
+
+You are expected to have the skills and knowledge for these tasks, so don’t expect step-by-step guides.
+
+Your challenge
+
+You are asked to help a newly formed development team with some of their initial work on a new project around storing and organizing photographs, called *Memories*. You have been asked to assist the Memories team with initial configuration for their application development environment.
+
+You receive the following request to complete the following tasks:
+
+- Create a bucket for storing the photographs.
+- Create a Pub/Sub topic that will be used by a Cloud Run Function you create.
+- Create a Cloud Run Function.
+- Remove the previous cloud engineer’s access from the memories project.
+
+Some Jooli Inc. standards you should follow:
+
+- Create all resources in the `REGION` region and `ZONE` zone, unless otherwise directed.
+- Use the project VPCs.
+- Naming is normally *team-resource*, e.g. an instance could be named **kraken-webserver1**
+- Allocate cost effective resource sizes. Projects are monitored and excessive resource use will result in the containing project's termination (and possibly yours), so beware. This is the guidance the monitoring team is willing to share; unless directed, use **e2-micro** for small Linux VMs and **e2-medium** for Windows or other applications such as Kubernetes nodes.
+
+Each task is described in detail below, good luck!
+
+</aside>
+
+<aside>
+
+**Task 1. Create a bucket**
+
+You need to create a bucket called `Bucket Name` for the storage of the photographs. Ensure the resource is created in the `REGION` region and `ZONE` zone.
+
+## My solution
+
+### 1.-Setting the variable
+
+```jsx
+export BUCKET_NAME=qwiklabs-gcp-02-d4de145b95a2-bucket
+export REGION=us-west1
+export ZONE=us-west1-a
+export TOPIC_NAME=topic-memories-549
+export CLOUD_FUNCTION_NAME=memories-thumbnail-creator
+export ADMIN=student-01-5d5f34d5aa73@qwiklabs.net
+export VIEWER=student-01-1dd0105a3546@qwiklabs.net
+export PROJECT_ID=$(gcloud config get-value project)
+```
+
+```jsx
+echo $BUCKET_NAME
+echo $REGION
+echo $ZONE
+echo $TOPIC_NAME
+echo $CLOUD_FUNCTION_NAME
+echo $ADMIN
+echo $VIEWER
+```
+
+### 2.-Setting global region a zone
+
+```jsx
+gcloud config set compute/region $REGION
+gcloud config set compute/zone $ZONE
+```
+
+### 3.-Create a bucket
+
+```jsx
+gcloud storage buckets create gs://$BUCKET_NAME --location=$REGION
+```
+
+### 4.-Checking if it was created ok via CLI
+
+```jsx
+gcloud storage buckets list
+gcloud storage describre $BUCKET_NAME
+```
+
+### 4.-Checking if it was created ok via CONSOLE
+
+Cloud storage > buckets > it should appear the bucket called with the variable $BUCKET_NAME = ….
+
+</aside>
+
+<aside>
+
+**Task 2. Create a Pub/Sub topic**
+
+Create a Pub/Sub topic called `Topic Name` for the Cloud Run Function to send messages.
+
+## My solution
+
+### 1.- Creating the topic
+
+```jsx
+gcloud pubsub topics create $TOPIC_NAME
+```
+
+### 2.- Checking if created ok
+
+```jsx
+gcloud pubsub topics list 
+```
+
+</aside>
+
+<aside>
+
+**Task 3. Create the thumbnail Cloud Run Function**
+
+Create the function
+
+Create a Cloud Run Function `Cloud Run Function Name` that will to create a thumbnail from an image added to the `Bucket Name` bucket.
+
+Ensure the Cloud Run Function is using the **Cloud Run function** environment (which is 2nd generation). Ensure the resource is created in the `REGION` region and `ZONE` zone.
+
+1. Create a Cloud Run Function (2nd generation) called `Cloud Run Function Name` using `Node.js 22`.
+
+**Note:** The Cloud Run Function is required to execute every time an object is created in the bucket created in Task 1. During the process, Cloud Run Function may request permission to enable APIs or request permission to grant roles to service accounts. Please enable each of the required APIs and grant roles as requested.
+
+1. Make sure you set the **Entry point** (Function to execute) to `Cloud Run Function Name` and **Trigger** to `Cloud Storage`.
+2. Add the following code to the `index.js`:
+
+```jsx
+const functions = require('@google-cloud/functions-framework');
+const { Storage } = require('@google-cloud/storage');
+const { PubSub } = require('@google-cloud/pubsub');
+const sharp = require('sharp');
+
+functions.cloudEvent('', async cloudEvent => {
+  const event = cloudEvent.data;
+
+  console.log(`Event: ${JSON.stringify(event)}`);
+  console.log(`Hello ${event.bucket}`);
+
+  const fileName = event.name;
+  const bucketName = event.bucket;
+  const size = "64x64";
+  const bucket = new Storage().bucket(bucketName);
+  const topicName = "";
+  const pubsub = new PubSub();
+
+  if (fileName.search("64x64_thumbnail") === -1) {
+    // doesn't have a thumbnail, get the filename extension
+    const filename_split = fileName.split('.');
+    const filename_ext = filename_split[filename_split.length - 1].toLowerCase();
+    const filename_without_ext = fileName.substring(0, fileName.length - filename_ext.length - 1); // fix sub string to remove the dot
+
+    if (filename_ext === 'png' || filename_ext === 'jpg' || filename_ext === 'jpeg') {
+      // only support png and jpg at this point
+      console.log(`Processing Original: gs://${bucketName}/${fileName}`);
+      const gcsObject = bucket.file(fileName);
+      const newFilename = `${filename_without_ext}_64x64_thumbnail.${filename_ext}`;
+      const gcsNewObject = bucket.file(newFilename);
+
+      try {
+        const [buffer] = await gcsObject.download();
+        const resizedBuffer = await sharp(buffer)
+          .resize(64, 64, {
+            fit: 'inside',
+            withoutEnlargement: true,
+          })
+          .toFormat(filename_ext)
+          .toBuffer();
+
+        await gcsNewObject.save(resizedBuffer, {
+          metadata: {
+            contentType: `image/${filename_ext}`,
+          },
+        });
+
+        console.log(`Success: ${fileName} → ${newFilename}`);
+
+        await pubsub
+          .topic(topicName)
+          .publishMessage({ data: Buffer.from(newFilename) });
+
+        console.log(`Message published to ${topicName}`);
+      } catch (err) {
+        console.error(`Error: ${err}`);
+      }
+    } else {
+      console.log(`gs://${bucketName}/${fileName} is not an image I can handle`);
+    }
+  } else {
+    console.log(`gs://${bucketName}/${fileName} already has a thumbnail`);
+  }
+});
+```
+
+4. Add the following code to the `package.json`:
+
+```jsx
+{
+ "name": "thumbnails",
+ "version": "1.0.0",
+ "description": "Create Thumbnail of uploaded image",
+ "scripts": {
+   "start": "node index.js"
+ },
+ "dependencies": {
+   "@google-cloud/functions-framework": "^3.0.0",
+   "@google-cloud/pubsub": "^2.0.0",
+   "@google-cloud/storage": "^6.11.0",
+   "sharp": "^0.32.1"
+ },
+ "devDependencies": {},
+ "engines": {
+   "node": ">=4.3.2"
+ }
+}
+
+```
+
+**Note:** If you get a permission denied error stating it may take a few minutes before all necessary permissions are propagated to the Service Agent, wait a few minutes and try again. Ensure you have the appropriate roles (Eventarc Service Agent, Eventarc Event Receiver, Service Account Token Creator, and Pub/Sub Publisher) assigned to the correct service accounts.
+
+# Test the function
+
+- Upload a PNG or JPG image of your choice to the `Bucket Name` bucket.
+
+**Note:** Alternatively, download this image `https://storage.googleapis.com/cloud-training/gsp315/map.jpg` to your machine. Then, upload it to the bucket.
+
+You will see a thumbnail image appear shortly afterwards (use **REFRESH** on the bucket details page).
+
+After you upload the image file, you can click to check your progress below. You do not need to wait for the thumbnail image to be created.
+
+**Optional:** If the function deployed successfully and you do not see the thumbnail image in the bucket, you can check that the **Triggers** tab displays the trigger information that you previously provided for the function, which may not have saved correctly if you previously encountered errors. If you do not see the Cloud Storage trigger in the **Triggers** tab of the function, you can recreate the trigger (see the documentation page titled [Create a trigger for services](https://cloud.google.com/run/docs/triggering/trigger-with-events#trigger-services)), and then upload a new file again to test again (refresh the page after adding a new file).
+
+## My solution
+
+### 1.- Setting only region  for cloud run, cloud run no need zone by default
+
+```jsx
+gcloud config set run/region $REGION
+```
+
+### 2.- Creating and entering to the directory file
+
+```jsx
+mkdir -p ~/memories-function
+```
+
+```jsx
+cd ~/memories-function
+```
+
+### 3.-Opening the  file index.js with nano
+
+```jsx
+nano index.js
+```
+
+### 4.-Pasting the code for the action and I fixed the cloud Event
+
+Add the following code to the `index.js`:
+
+Closing the nano with CTRL + X and Y for save the file
+
+```jsx
+const functions = require('@google-cloud/functions-framework');
+const { Storage } = require('@google-cloud/storage');
+const { PubSub } = require('@google-cloud/pubsub');
+const sharp = require('sharp');
+
+functions.cloudEvent('memories-thumbnail-creator', async cloudEvent => {
+  const event = cloudEvent.data;
+
+  console.log(`Event: ${JSON.stringify(event)}`);
+  console.log(`Hello ${event.bucket}`);
+
+  const fileName = event.name;
+  const bucketName = event.bucket;
+  const size = "64x64";
+  const bucket = new Storage().bucket(bucketName);
+  const topicName = "topic-memories-549";
+  const pubsub = new PubSub();
+
+  if (fileName.search("64x64_thumbnail") === -1) {
+    // doesn't have a thumbnail, get the filename extension
+    const filename_split = fileName.split('.');
+    const filename_ext = filename_split[filename_split.length - 1].toLowerCase();
+    const filename_without_ext = fileName.substring(0, fileName.length - filename_ext.length - 1); // fix sub string to remove the dot
+
+    if (filename_ext === 'png' || filename_ext === 'jpg' || filename_ext === 'jpeg') {
+      // only support png and jpg at this point
+      console.log(`Processing Original: gs://${bucketName}/${fileName}`);
+      const gcsObject = bucket.file(fileName);
+      const newFilename = `${filename_without_ext}_64x64_thumbnail.${filename_ext}`;
+      const gcsNewObject = bucket.file(newFilename);
+
+      try {
+        const [buffer] = await gcsObject.download();
+        const resizedBuffer = await sharp(buffer)
+          .resize(64, 64, {
+            fit: 'inside',
+            withoutEnlargement: true,
+          })
+          .toFormat(filename_ext)
+          .toBuffer();
+
+        await gcsNewObject.save(resizedBuffer, {
+          metadata: {
+            contentType: `image/${filename_ext}`,
+          },
+        });
+
+        console.log(`Success: ${fileName} → ${newFilename}`);
+
+        await pubsub
+          .topic(topicName)
+          .publishMessage({ data: Buffer.from(newFilename) });
+
+        console.log(`Message published to ${topicName}`);
+      } catch (err) {
+        console.error(`Error: ${err}`);
+      }
+    } else {
+      console.log(`gs://${bucketName}/${fileName} is not an image I can handle`);
+    }
+  } else {
+    console.log(`gs://${bucketName}/${fileName} already has a thumbnail`);
+  }
+});
+```
+
+### 5.- The same procedure for the package.json file, CTRL + X and then Y to save
+
+```jsx
+nano package.json
+```
+
+```jsx
+{
+ "name": "thumbnails",
+ "version": "1.0.0",
+ "description": "Create Thumbnail of uploaded image",
+ "scripts": {
+   "start": "node index.js"
+ },
+ "dependencies": {
+   "@google-cloud/functions-framework": "^3.0.0",
+   "@google-cloud/pubsub": "^2.0.0",
+   "@google-cloud/storage": "^6.11.0",
+   "sharp": "^0.32.1"
+ },
+ "devDependencies": {},
+ "engines": {
+   "node": ">=4.3.2"
+ }
+}
+
+```
+
+### 6.- Installing the dependecies
+
+```jsx
+npm install
+```
+
+### 7.-Giving IAM permissions
+
+```jsx
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+    --member="serviceAccount:service-890041366730@gs-project-accounts.iam.gserviceaccount.com" \
+    --role="roles/pubsub.publisher"
+```
+
+### 8.-Creating the function
+
+Create a Cloud Run Function (2nd generation) called `Cloud Run Function Name` using `Node.js 22`.
+
+```jsx
+gcloud functions deploy memories-thumbnail-creator \
+	--gen2 \
+	--runtime=nodejs22 \
+	--region=$REGION \
+	--entry-point=memories-thumbnail-creator \
+	--trigger-resource=$BUCKET_NAME \
+  --trigger-event=google.storage.object.finalize \
+  --allow-unauthenticated
+
+```
+
+```jsx
+gcloud functions list 
+```
+
+### 9.- Testing: uploading the image
+
+Upload a PNG or JPG image of your choice to the `Bucket Name` bucket
+
+```jsx
+gsutil cp https://storage.googleapis.com/cloud-training/gsp315/map.jpg gs://$BUCKET_NAME/map.jpg
+```
+
+### 10.- Testing the action via CONSOLE
+
+Cloud storage > buckets > select the bucket and then > upload and upload an image
+
+After a couple of minutes refresh the page and it should appear the new image thumbnail
+
+### 11.- Testing the action via CLI
+
+```jsx
+gsutil cp map.jpg gs://$BUCKET_NAME
+```
+
+```jsx
+gcloud pubsub topics publish thumbailFunction --message="thumbailFunction"
+```
+
+</aside>
+
+<aside>
+
+# **Task 3. Remove the previous cloud engineer**
+
+You will see that there are two users defined in the project.
+
+- One is your account (`Username 1` with the role of Owner).
+- The other is the previous cloud engineer (`Username 2` with the role of Viewer).
+1. Remove the previous cloud engineer’s access from the project.
+
+## My solution with CLI
+
+### 1.- Deleting the permissions from viewer (username 2)
+
+```jsx
+gcloud projects remove-iam-policy-binding $PROJECT_ID \
+	--member=$VIEWER \
+	--role="roles/viewer"
+```
+
+## My solution with the console
+
+### 1.- I have to verify I’m from username1 account
+
+### 2.- Then, Navigation menu > IAM & Admin > IAM
+
+### 3.- Click on the pencil next to username2
+
+### 4.- Click on trashcan and save
+
+### 5.- Wait for a few seconds and click on check assignment
+
+</aside>
+
 <hr style="border:0;height:1px;background:#eee;" />
+
 <a id="develop-network"></a>
 ### 🌐 Develop your Google Cloud Network: Challenge Lab
 explicación
