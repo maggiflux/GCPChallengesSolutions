@@ -33,7 +33,7 @@
 RESPUESTA
 <hr style="border:0;height:1px;background:#eee;" />
 
-<a id="load-balancing"></a>
+<a id="app-dev-environment"></a>
 ### 🚧 Set Up an App Dev Environment on Google Cloud: Challenge Lab
 RESPUESTA
 <hr style="border:0;height:1px;background:#eee;" />
