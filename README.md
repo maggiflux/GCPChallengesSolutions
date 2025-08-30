@@ -46,8 +46,10 @@ RESPUESTA
 <hr style="border:0;height:1px;background:#eee;" />
 <a id="cloud-run-functions"></a>
 ### ⚡ Cloud Run Functions: 3 Ways Skill Badge: Challenge Lab: Introductory
+
 *All the instructions given are meant to be executed on the Cloud shell.*
- *After you enter the platform open the shell and always check you’re under the right project.* 
+
+*After you enter the platform open the shell and always check you’re under the right project.* 
 
 **Task 1. Create a Cloud Storage bucket**
 
