@@ -1033,7 +1033,494 @@ gcloud projects add-iam-policy-binding $(gcloud config get-value project) \
 
 <a id="terraform-infra"></a>
 ### 🏗️ Build Infrastructure with Terraform on Google Cloud: Challenge Lab
-RESPUESTA
+<aside>
+
+### **Task 1. Create the configuration files**
+
+*In Cloud Shell, create your Terraform configuration files and a directory structure that resembles the following:*
+
+```jsx
+main.tf
+variables.tf
+modules/
+└── instances
+    ├── instances.tf
+    ├── outputs.tf
+    └── variables.tf
+└── storage
+    ├── storage.tf
+    ├── outputs.tf
+    └── variables.tf
+```
+
+//Creating the variables
+
+*On the cloud shell execute*
+
+*Instance  = to the third instance the should be created at step 4*
+
+```jsx
+export REGION=us-east1
+export ZONE=us-east1-d
+export PROJECT_ID=qwiklabs-gcp-01-a4a76bf2a9b1
+export BUCKET=tf-bucket-863479
+export INSTANCE=tf-instance-843913
+export VPC=tf-vpc-243023
+export INSTANCE_ID_1=tf-instance-1
+export INSTANCE_ID_2=tf-instance-2
+```
+
+//Creating the folders and files
+
+```jsx
+cat > modules/instances/instances.tf <<EOF_END
+resource "google_compute_instance" "tf-instance-1" {
+  name         = "tf-instance-1"
+  machine_type = "e2-micro"
+  zone         = "$ZONE"
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-11"
+    }
+  }
+
+  network_interface {
+ network = "default"
+  }
+  metadata_startup_script = <<-EOT
+        #!/bin/bash
+    EOT
+  allow_stopping_for_update = true
+}
+
+resource "google_compute_instance" "tf-instance-2" {
+  name         = "tf-instance-2"
+  machine_type = "e2-micro"
+  zone         =  "$ZONE"
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-11"
+    }
+  }
+
+  network_interface {
+	  network = "default"
+  }
+  metadata_startup_script = <<-EOT
+        #!/bin/bash
+    EOT
+  allow_stopping_for_update = true
+}
+EOF_END
+```
+
+```jsx
+touch main.tf variables.tf
+mkdir modules
+cd modules
+mkdir instances
+cd instances
+touch instances.tf outputs.tf variables.tf
+cd ..
+mkdir storage
+cd storage
+touch storage.tf outputs.tf variables.tf
+cd
+```
+
+//Filling the variables .tf [](http://variables.tf)ROOT 
+
+```jsx
+variable "region" {
+	type        = string
+	default     = "$REGION"
+	description = "challenge region"
+}
+
+variable "zone" {
+	type        = string
+	default     = "$ZONE"
+	description = "challenge zone"
+}
+
+variable "project_id" {
+	type        = string
+	default     = "$PROJECT_ID"
+	description = "challenge id"
+}
+```
+
+//Filling the main .tf [](http://variables.tf)ROOT 
+
+```jsx
+terraform {
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "4.53.0"
+    }
+  }
+}
+
+provider "google" {
+  region     = var.region
+  zone       = var.zone
+  project    = var.project_id 
+}
+
+module "instances" {
+  source     = "./modules/instances"
+}
+```
+
+//Init the terraform document
+
+```jsx
+terraform init 
+```
+
+</aside>
+
+<aside>
+
+### **Task 2. Import infrastructure**
+
+//Looking and coping the instances ID’sm boot disk, machine type
+
+```jsx
+tf-instance-1 y 2
+instance id -> 4500354172801803476
+boot disk image -> e2-micro
+machine type -> debian-11-bullseye-v20250311
+e2-micro"
+```
+
+//Going to the instance -tf file and pasting the resources for Instances  1 and 2
+
+```jsx
+resource "google_compute_instance" "tf-instance-1" {
+  name         = "tf-instance-1"
+  machine_type = "e2-micro"
+  zone         = "$ZONE"
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-11"
+    }
+  }
+
+  network_interface {
+    network = "default"
+  }
+
+  metadata_startup_script = <<-EOT
+        #!/bin/bash
+    EOT
+  allow_stopping_for_update = true
+}
+
+resource "google_compute_instance" "tf-instance-2" {
+  name         = "tf-instance-2"
+  machine_type = "e2-micro"
+  zone         = "$ZONE"
+  
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-11"
+    }
+  }
+
+  network_interface {
+    network = "default"
+  }
+
+ metadata_startup_script = <<-EOT
+        #!/bin/bash
+    EOT
+  allow_stopping_for_update = true
+}
+
+```
+
+//Importing module instance 1
+
+*Important note: change the INSTANCE ID for the instance id*
+
+```jsx
+terraform import module.instances.google_compute_instance.tf-instance-1 $PROJECT_ID/$ZONE/$INSTANCE_ID_1
+```
+
+//Importing module instance 2
+
+*Important note: change the INSTANCE ID for the instance id*
+
+```jsx
+terraform import module.instances.google_compute_instance.tf-instance-2 $PROJECT_ID/$ZONE/$INSTANCE_ID_2
+```
+
+//Applying changes
+
+```jsx
+terraform plan
+```
+
+```jsx
+terraform apply -auto-approve
+```
+
+</aside>
+
+<aside>
+
+### **Task 3. Configure a remote backend**
+
+//Going to the storage module then storage .tf then adding the code
+
+*Important note: change the bucket name for the one the lab would give me once the time starts*
+
+  *project = var.project_id*
+
+```jsx
+resource "google_storage_bucket" "storage-bucket" {
+  name          = "tf-bucket-016463"
+  location      = "US"
+  force_destroy = true
+  uniform_bucket_level_access = true
+}
+```
+
+//Going to main .tf and call the module
+
+```jsx
+  module "storage" {
+  source     = "./modules/storage"
+}
+```
+
+//Applying
+
+```jsx
+terraform init
+```
+
+```jsx
+terraform apply -auto-approve
+```
+
+//Going to main .tf againg to writte the set de bucket
+
+****THIS CODE MUST BE AT THE TOP OF THE FILE*
+
+```jsx
+terraform {
+  backend "gcs" {
+    bucket = "tf-bucket-016463" 
+    prefix = "terraform/state"
+  }
+  ...
+```
+
+//Init
+
+```jsx
+terraform init
+```
+
+</aside>
+
+<aside>
+
+### **Task 4. Modify and update infrastructure**
+
+//Changing the machine type for the Instance -1  and 2 for:
+
+```jsx
+e2-standard-2
+```
+
+//Adding a new instance resource within the file instances .tf
+
+*Wait for the name the challenge have to given* 
+
+```jsx
+...
+  machine_type = "e2-standard-2"
+...
+```
+
+//Adding a new instance resource within instances .tf
+
+```jsx
+resource "google_compute_instance" "$INSTANCE" {
+  name         = "$INSTANCE"
+  machine_type = "e2-standard-2"
+  zone         = "$ZONE"
+
+  boot_disk {
+    initialize_params {
+      image = "debian-cloud/debian-11"
+    }
+  }
+
+  network_interface {
+ network = "default"
+  }
+  metadata_startup_script = <<-EOT
+        #!/bin/bash
+    EOT
+  allow_stopping_for_update = true
+}
+```
+
+//Applying those changes
+
+```jsx
+terraform init
+terraform apply -auto-approve
+```
+
+</aside>
+
+<aside>
+
+### **Task 5. Destroy resources**
+
+//Delete the third INSTANCE created on the file instance
+
+//Applying those changes
+
+```jsx
+terraform apply -auto-approve
+```
+
+</aside>
+
+<aside>
+
+### **Task 6. Use a module from the Registry**
+
+//Goin to main .tf and paste this
+
+*Network name will we the one provided by the challenge:* 
+
+```jsx
+module "vpc" {
+    source  = "terraform-google-modules/network/google"
+    version = "~> 6.0.0"
+
+    project_id   = "$PROJECT_ID"
+    network_name = "$VPC"
+    routing_mode = "GLOBAL"
+
+    subnets = [
+        {
+            subnet_name           = "subnet-01"
+            subnet_ip             = "10.10.10.0/24"
+            subnet_region         = "$REGION"
+        },
+        {
+            subnet_name           = "subnet-02"
+            subnet_ip             = "10.10.20.0/24"
+            subnet_region         = "$REGION"
+            subnet_private_access = "true"
+            subnet_flow_logs      = "true"
+            description           = "Hola"
+        }
+    ]
+```
+
+//Applying changes
+
+```jsx
+terraform init
+```
+
+```jsx
+terraform plan
+```
+
+```jsx
+terraform apply -auto-approve
+```
+
+//Going to instances .tf 
+
+*Changing only the network_interface part*
+
+```jsx
+resource "google_compute_instance" "tf-instance-1" {
+  ...
+    
+  network_interface {
+    network    = "$VPC"
+    subnetwork = "subnet-01"
+  }
+  
+   network_interface {
+    network    = "$VPC"
+    subnetwork = "subnet-02"
+  }
+  
+ ...
+   
+}
+```
+
+//Applying changes
+
+```jsx
+terraform init
+```
+
+```jsx
+terraform plan
+```
+
+```jsx
+terraform apply -auto-approve
+```
+
+</aside>
+
+<aside>
+
+### **Task 7. Configure a firewall**
+
+//Going to main .tf to create a firewall tule
+
+```jsx
+resource "google_compute_firewall" "tf-firewall" {
+  name    = "tf-firewall"
+  network = "projects/$PROJECT_ID/global/networks/$VPC"
+
+  allow {
+    protocol = "tcp"
+    ports    = ["80"]
+  }
+
+  source_ranges = ["0.0.0.0/0"]
+  target_tags   = ["web"]
+
+}
+```
+
+//Applying changes
+
+```jsx
+terraform init
+```
+
+```jsx
+terraform plan
+```
+
+```jsx
+terraform apply -auto-approve
+```
+
+</aside>
 <hr style="border:0;height:1px;background:#eee;" />
 
 <a id="prompt-design"></a>
