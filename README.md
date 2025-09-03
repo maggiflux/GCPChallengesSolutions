@@ -617,7 +617,418 @@ My solution with the console
 
 <a id="develop-network"></a>
 ### 🌐 Develop your Google Cloud Network: Challenge Lab
-RESPUESTA
+<aside>
+
+### **Task 1. Create development VPC manually**
+
+//First set the variables 
+
+```jsx
+export REGION=us-west1
+export ZONE=us-west1-a
+export USER_TWO=student-01-85ad1af33bb6@qwiklabs.net
+```
+
+```jsx
+echo $REGION
+echo $ZONE
+echo $USER_TWO
+```
+
+//Setting the region and zone 
+
+```jsx
+gcloud config set compute/region REGION
+gcloud config set compute/zone ZONE
+```
+
+//Creating net VPC DEV
+
+```jsx
+gcloud compute networks create griffin-dev-vpc --subnet-mode=custom
+```
+
+//Creating subnet 1
+
+```jsx
+
+gcloud compute networks subnets create griffin-dev-wp \
+    --network=griffin-dev-vpc \
+    --range=192.168.16.0/20 \
+    --region=$REGION
+```
+
+//Creating subnet 2
+
+```jsx
+gcloud compute networks subnets create griffin-dev-mgmt \
+    --network=griffin-dev-vpc \
+    --range=192.168.32.0/20 \
+    --region=$REGION
+```
+
+</aside>
+
+<aside>
+
+### **Task 2. Create production VPC manually**
+
+//Creating  VPC PROD
+
+```jsx
+gcloud compute networks create griffin-prod-vpc --subnet-mode=custom
+```
+
+//Creating subnet 1
+
+```jsx
+gcloud compute networks subnets create griffin-prod-wp \
+    --network=griffin-prod-vpc \
+    --range=192.168.48.0/20 \
+    --region=$REGION
+```
+
+//Creating second subnet
+
+```jsx
+gcloud compute networks subnets create griffin-prod-mgmt \
+    --network=griffin-prod-vpc \
+    --range=192.168.64.0/20 \
+    --region=$REGION
+```
+
+//Checking if they are ok on CS
+
+```jsx
+gcloud compute networks list
+```
+
+</aside>
+
+<aside>
+
+### **Task 3. Create bastion host**
+
+//Getting the ip public
+
+```jsx
+export IP_PUBLIC=$(curl -s ifconfig.me)
+```
+
+//Creating the VM instance
+
+```jsx
+gcloud compute instances create griffin-bastion \
+	--tags=allow-ssh \
+  --zone=$ZONE \
+  --machine-type=e2-medium \
+  --network-interface subnet=griffin-dev-mgmt \
+  --network-interface subnet=griffin-prod-mgmt
+```
+
+//Creating both firewall rules for every network
+
+*SSH se accede con el puerto 22 **nota*
+
+```jsx
+gcloud compute firewall-rules create griffin-prod-allow-ssh \
+--network=griffin-prod-vpc \
+--allow=tcp:22 \
+--source-ranges=0.0.0.0/0 \
+--target-tags=allow-ssh \
+--description="Allow SSH traffic to griffin-prod-vpc"
+```
+
+```jsx
+gcloud compute firewall-rules create griffin-dev-allow-ssh \
+--network=griffin-dev-vpc \
+--allow=tcp:22 \
+--source-ranges=0.0.0.0/0 \
+--target-tags=allow-ssh \
+--description="Allow SSH traffic to griffin-prod-vpc"
+```
+
+</aside>
+
+<aside>
+
+### **Task 4. Create and configure Cloud SQL Instance**
+
+*Create a **MySQL Cloud SQL Instance** called `griffin-dev-db` in `REGION`.*
+
+*Connect to the instance and run the following SQL commands to prepare the **WordPress** environment:*
+
+*These SQL statements create the worpdress database and create a user with access to the wordpress database.*
+
+*You will use the username and password in task 6.*
+
+```jsx
+CREATE DATABASE wordpress;
+CREATE USER "wp_user"@"%" IDENTIFIED BY "stormwind_rules";
+GRANT ALL PRIVILEGES ON wordpress.* TO "wp_user"@"%";
+FLUSH PRIVILEGES;
+```
+
+//Creating the mysql warehouse instance Cloud SQL
+
+```jsx
+gcloud sql instances create griffin-dev-db \
+  --database-version=MYSQL_8_0 \
+  --tier=db-n1-standard-2 \
+  --zone=$ZONE \
+  --root-password=stormwind_rules \
+  --edition=ENTERPRISE \
+  
+  ?
+  --database-flags=character_set_server=utf8mb4,collation_server=utf8mb4_unicode_ci
+```
+
+//Creating WordPress data base
+
+```jsx
+gcloud sql databases create wordpress --instance=griffin-dev-db
+```
+
+//Creating wp_user with password 
+
+```jsx
+
+gcloud sql users create wp_user \
+  --instance=griffin-dev-db \
+  --password=stormwind_rules \
+  --host=%
+```
+
+//Connecting the instance - not sure if this step is necesary- !!! creo q hay q borrarlo
+
+*Wait a few minutes and then > Click on SQL instance overview*
+
+```jsx
+CREATE DATABASE wordpress;
+CREATE USER "wp_user"@"%" IDENTIFIED BY "stormwind_rules";
+GRANT ALL PRIVILEGES ON wordpress.* TO "wp_user"@"%";
+FLUSH PRIVILEGES;
+```
+
+</aside>
+
+<aside>
+
+### **Task 5. Create Kubernetes cluster**
+
+//Create a 2 node cluster (e2-standard-4) called `griffin-dev`, in the `griffin-dev-wp` subnet, and in zone `ZONE`.
+
+```jsx
+gcloud container clusters create griffin-dev  \
+	--num-nodes 2  \
+	--machine-type e2-standard-4  \
+	--network griffin-dev-vpc \
+	--subnetwork griffin-dev-wp \
+	--zone=$ZONE
+```
+
+</aside>
+
+<aside>
+
+### **Task 6. Prepare the Kubernetes cluster**
+
+*Use the command below to create the key, and then add the key to the Kubernetes environment:*
+
+```jsx
+gcloud iam service-accounts keys create key.json \
+    --iam-account=cloud-sql-proxy@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com
+kubectl create secret generic cloudsql-instance-credentials \
+    --from-file key.json
+```
+
+//Getting credential clusters
+
+```jsx
+gcloud container clusters get-credentials griffin-dev --zone=$ZONE
+```
+
+//Downloading the file and entering 
+
+```jsx
+gsutil cp -r gs://cloud-training/gsp321/wp-k8s .
+```
+
+```jsx
+cd wp-k8s
+```
+
+//Checking
+
+```jsx
+echo -n "wp_user" | base64
+echo -n "stormwind_rules" | base64
+```
+
+//Going inside the .yaml file
+
+```jsx
+nano wp-env.yaml
+```
+
+//Updating the username and password
+
+```jsx
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-credentials
+type: Opaque
+data:
+  username: wp_user
+  password: stormwind_rules
+```
+
+```jsx
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-credentials
+type: Opaque
+data:
+  username: d3BfdXNlcg==  # base64 encoded "wp_user"
+  password: c3Rvcm13aW5kX3J1bGVz  # base64 encoded "stormwind_rules"
+```
+
+//Applying the changes
+
+```jsx
+kubectl apply -f wp-env.yaml
+```
+
+//Creating the keys and credentials for the username
+
+```jsx
+gcloud iam service-accounts keys create key.json \
+  --iam-account=cloud-sql-proxy@$GOOGLE_CLOUD_PROJECT.iam.gserviceaccount.com
+```
+
+```jsx
+kubectl create secret generic cloudsql-instance-credentials \
+  --from-file key.json
+```
+
+</aside>
+
+<aside>
+
+### **Task 7. Create a WordPress deployment**
+
+//Creating the sql instance
+
+```jsx
+gcloud sql instances describe griffin-dev-db --format="value(connectionName)”
+```
+
+//Taking the name the previous command gave 
+
+*Hay que esperar un par de minutos extra para que ejecutar y que funcione este comando*
+
+```jsx
+qwiklabs-gcp-04-befbc2a37d18:us-west1:griffin-dev-db
+```
+
+//Entering into the file and then into the deployment.yaml
+
+*Make sure you're in the directory with the files*
+
+```jsx
+cd wp-k8s  
+```
+
+//Entering into the file and then into the deployment.yaml
+
+*Into the .yaml*
+
+```jsx
+nano wp-deployment.yaml
+```
+
+//Looking for the  line with YOUR_SQL_INSTANCE  and replacing it with 
+
+```jsx
+qwiklabs-gcp-04-befbc2a37d18:us-west1:griffin-dev-db
+```
+
+//Applying those changes deployment
+
+```jsx
+kubectl apply -f wp-deployment.yaml
+```
+
+//Applying those changes service
+
+```jsx
+kubectl apply -f wp-service.yaml
+```
+
+//Getting the services from wordpress
+
+```jsx
+kubectl get service wordpress
+```
+
+//Getting the credentials
+
+```jsx
+gcloud container clusters get-credentials griffin-dev --zone=$ZONE
+```
+
+</aside>
+
+<aside>
+
+### **Task 8.  Enable monitoring C**reate an uptime check for your WordPress development site.
+
+//Obtaining the external IP and assigned into a variable
+
+*Exports the external IP address of your WordPress service ***
+
+```jsx
+kubectl get service wordpress
+```
+
+```jsx
+export GRIFFIN_EXTERNAL_IP=$(kubectl get service wordpress -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+```
+
+```jsx
+echo $GRIFFIN-EXTERNAL-IP
+```
+
+//Creating the uptime checked 
+
+```jsx
+gcloud monitoring uptime create griffin-uptime-check \
+  --path=/ \
+  --resource-type=uptime-url \
+  --regions=usa-oregon,usa-virginia,usa-iowa \
+  --port=80 \
+  --protocol=http \
+  --timeout=30 \
+  --resource-labels=host=$GRIFFIN_EXTERNAL_IP
+```
+
+</aside>
+
+<aside>
+
+# **Task 9. Provide access for an additional engineer**
+
+//Giving them via cloud shell
+
+```jsx
+gcloud projects add-iam-policy-binding $(gcloud config get-value project) \
+	--member=user:$USER_TWO \
+	--role=roles/editor
+```
+
+</aside>
 <hr style="border:0;height:1px;background:#eee;" />
 
 <a id="terraform-infra"></a>
