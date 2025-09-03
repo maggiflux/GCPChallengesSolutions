@@ -1018,7 +1018,7 @@ gcloud monitoring uptime create griffin-uptime-check \
 
 <aside>
 
-# **Task 9. Provide access for an additional engineer**
+### **Task 9. Provide access for an additional engineer**
 
 //Giving them via cloud shell
 
