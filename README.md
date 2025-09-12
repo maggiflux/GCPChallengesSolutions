@@ -1,5 +1,5 @@
 # ☁️ GCP Challenges Solutions
-💡 My approaches to some of the challenges from **Google Cloud Platform** paths and courses.
+💡 Answers to some of the challenges from **Google Cloud Platform** paths and courses.
 
 <img width="1500" height="1000" alt="Untitled design (1)" src="https://github.com/user-attachments/assets/505e3f6d-0cdf-40b9-b243-24eacc6de968" />
 
