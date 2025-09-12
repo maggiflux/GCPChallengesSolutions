@@ -1525,7 +1525,7 @@ terraform apply -auto-approve
 
 <a id="prompt-design"></a>
 ### ✨ Prompt Design in Vertex AI: Challenge Lab
-RESPUESTA
+Coming soon
 <hr style="border:0;height:1px;background:#eee;" />
 
 <a id="cloud-run-functions"></a>
